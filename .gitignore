@@ -1,0 +1,6 @@
+# Ignore virtual environments
+ecg_env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
