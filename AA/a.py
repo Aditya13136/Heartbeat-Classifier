@@ -74,25 +74,27 @@ X, y = shuffle(X, y, random_state=42)
 # ============================================
 # Step 3: Normalize & Reshape
 # ============================================
-scaler = StandardScaler()
-X = scaler.fit_transform(X)
-
-X = X.reshape(X.shape[0], X.shape[1], 1)
-
-# One-hot encoding
-y = to_categorical(y, num_classes=2)
-
-# ============================================
-# Step 4: Train-Test Split
-# ============================================
+# Split first
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
+# Fit scaler ONLY on training data
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# ============================================
+# Step 4: Train-Test Split
+# ============================================
+# reshape after scaling
+X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+
 # ============================================
 # Step 5: Handle Class Imbalance
 # ============================================
-y_labels = np.argmax(y_train, axis=1)
+y_labels = y_train
 
 class_weights = compute_class_weight(
     class_weight='balanced',
@@ -101,7 +103,7 @@ class_weights = compute_class_weight(
 )
 
 class_weights = dict(enumerate(class_weights))
-print("Class weights:", class_weights)
+print(class_weights)
 
 # ============================================
 # Step 6: Build CNN Model
@@ -125,7 +127,7 @@ model = Sequential([
 
 model.compile(
     optimizer='adam',
-    loss='categorical_crossentropy',
+    loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
 )
 
@@ -162,7 +164,7 @@ class_names = ['Normal', 'Abnormal']
 print(f"Predicted: {class_names[pred_class]} ({confidence*100:.2f}%)")
 
 # ============================================
-# Step 10: Predict from NEW RECORD (real new data)
+# Step 10: Predict from NEW RECORD (fixed)
 # ============================================
 print("\nTesting on completely new record...")
 
@@ -170,20 +172,31 @@ record = wfdb.rdrecord(data_path + '116')
 annotation = wfdb.rdann(data_path + '116', 'atr')
 
 signal = record.p_signal[:, 0]
-peak = annotation.sample[0]
+r_peaks = annotation.sample
 
-new_beat = signal[peak - window_size : peak + window_size]
+for peak in r_peaks:
+    
+    # ✅ Boundary check (FIX)
+    if peak - window_size < 0 or peak + window_size > len(signal):
+        continue
 
-# Apply SAME preprocessing
-new_beat = scaler.transform([new_beat])
-new_beat = new_beat.reshape(1, new_beat.shape[1], 1)
+    new_beat = signal[peak - window_size : peak + window_size]
 
-prediction = model.predict(new_beat)
-pred_class = np.argmax(prediction)
-confidence = np.max(prediction)
+    # ✅ Safety check
+    if len(new_beat) != 2 * window_size:
+        continue
 
-print(f"New Beat Prediction: {class_names[pred_class]} ({confidence*100:.2f}%)")
+    # Preprocess
+    new_beat = scaler.transform([new_beat])
+    new_beat = new_beat.reshape(1, new_beat.shape[1], 1)
 
+    prediction = model.predict(new_beat)
+    pred_class = np.argmax(prediction)
+    confidence = np.max(prediction)
+
+    print(f"Prediction: {class_names[pred_class]} ({confidence*100:.2f}%)")
+
+    break  # remove if you want multiple predictions
 # ============================================
 # Step 11: Plot Training Graph
 # ============================================
@@ -194,3 +207,8 @@ plt.ylabel('Accuracy')
 plt.legend()
 plt.title('Training vs Validation Accuracy')
 plt.show()
+model.save("ecg_model.h5")
+import pickle
+
+pickle.dump(scaler, open("scaler.pkl", "wb"))
+print("Scaler saved successfully!")
