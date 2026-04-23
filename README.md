@@ -84,7 +84,7 @@ streamlit run app.py
 # 🎬 Demo
 
 ```md id="demo22"
-![Demo](/demo/demo.gif)
+![Demo](demo/demo.gif)
 ```
 
 ---
