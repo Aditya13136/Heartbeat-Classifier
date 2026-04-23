@@ -52,8 +52,6 @@ python -m venv venv
 
 Activate it:
 
-* **Windows:**
-
 ```bash id="winact"
 venv\Scripts\activate
 ```
@@ -85,16 +83,8 @@ streamlit run app.py
 
 # 🎬 Demo
 
-*(Add your demo GIF or video here)*
-
 ```md id="demo22"
-![Demo](path/to/demo.gif)
-```
-
-OR
-
-```md id="demo33"
-[▶️ Watch Demo](your-demo-link)
+![Demo](/demo/demo.gif)
 ```
 
 ---
