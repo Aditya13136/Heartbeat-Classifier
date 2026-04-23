@@ -21,7 +21,6 @@ A machine learning web app that classifies **heartbeat signals** using the **MIT
 * Supervised machine learning model trained on heartbeat data
 * Classifies different types of heartbeats based on ECG signals
 
-*(You can expand this section with your exact model type — e.g., CNN, Random Forest, etc.)*
 
 ---
 
@@ -32,7 +31,7 @@ A machine learning web app that classifies **heartbeat signals** using the **MIT
 * numpy
 * scikit-learn
 * streamlit
-* joblib / pickle
+* joblib
 
 ---
 
@@ -57,12 +56,6 @@ Activate it:
 
 ```bash id="winact"
 venv\Scripts\activate
-```
-
-* **Mac/Linux:**
-
-```bash id="macact"
-source venv/bin/activate
 ```
 
 ---
